@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - 'publication-*.zip'
+      - 'menu.html'
+      - 'menu-bridge.js'
+      - 'index.html'
+      - 'catalog.json'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -78,6 +83,9 @@ jobs:
           pack=json.loads(data.group(1))
           assert pack['project']['catalogVersion']==manifest['version'],'Menu e catalogo estao em versoes diferentes'
           assert (out/'menu-bridge.js').is_file() and (out/'index.html').is_file()
+          # O pacote preserva imagens e catalogo; arquivos HTML/JS atualizados no repositorio prevalecem.
+          for name in ('menu.html','menu-bridge.js','index.html'):
+              (out/name).write_bytes((root/name).read_bytes())
           print(f'OK: {manifest["version"]} | {len(files)} arquivos | {count} ZIPs')
           PY
       - uses: actions/upload-pages-artifact@v3
