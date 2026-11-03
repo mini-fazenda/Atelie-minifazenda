@@ -2,16 +2,22 @@
 
 Este repositório serve **o editor administrativo completo**, o menu exportado para jogadores, os GIFs/imagens e o catálogo em JSON. O jogo continua no repositório `mini-fazenda/mini-fazenda`.
 
-## Primeira instalação (uma vez)
+## Primeira publicação — arquivos já instalados
 
-1. Este repositório `mini-fazenda/Atelie-minifazenda` já foi criado. Adicione os três pacotes `publication-XX.zip` fornecidos na instalação.
-2. Extraia o ZIP de instalação entregue pelo ChatGPT. No novo repositório, coloque `.github/workflows/deploy.yml`, `README.md` e **todos os arquivos `publication-XX.zip`** na raiz (os pacotes individuais ficam abaixo de 25 MB).
+O repositório já contém o editor administrativo (`index.html`), o menu dos jogadores (`menu.html`), `catalog.json`, `menu-bridge.js`, `release.json` e o workflow `.github/workflows/deploy.yml`.
+
+**Faltam somente os 63 arquivos PNG/GIF do pacote binário**, organizados nos três arquivos de publicação. A conexão GitHub usada para gerar os textos não permite enviar diretamente esses arquivos ZIP binários. Para completar:
+
+1. Baixe e extraia o pacote `atelie-personagens-instalacao.zip` desta conversa.
+2. No repositório, abra **Add file → Upload files**. Selecione **somente** `publication-01.zip`, `publication-02.zip` e `publication-03.zip` e faça um único commit na branch `main`. Não descompacte os três ZIPs internos.
 3. No GitHub, abra **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-4. Em **Actions**, confira a execução de **Publicar Atelie Mini Fazenda** e os testes de arquivos e IDs. Nenhum arquivo do Firebase é alterado.
-5. Após a publicação, abra:
-   - Editor: `https://mini-fazenda.github.io/Atelie-minifazenda/`
-   - Menu dos jogadores: `https://mini-fazenda.github.io/Atelie-minifazenda/menu.html`
-   - Catálogo: `https://mini-fazenda.github.io/Atelie-minifazenda/catalog.json`
+4. Em **Actions**, confirme que a execução **Publicar Atelie Mini Fazenda** passou, incluindo a validação de hashes, IDs, imagens e GIFs.
+5. Confira:
+   - [Editor](https://mini-fazenda.github.io/Atelie-minifazenda/)
+   - [Menu dos jogadores](https://mini-fazenda.github.io/Atelie-minifazenda/menu.html)
+   - [Catálogo](https://mini-fazenda.github.io/Atelie-minifazenda/catalog.json)
+
+O PR do jogo [#99](https://github.com/mini-fazenda/mini-fazenda/pull/99) já aponta para este endereço. Ele não deve ser mesclado antes de verificar os arquivos acima e as visitas no jogo.
 
 ## Para adicionar uma roupa, cabelo, acessório ou GIF
 
