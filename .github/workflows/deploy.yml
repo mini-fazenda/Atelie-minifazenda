@@ -83,8 +83,10 @@ jobs:
           pack=json.loads(data.group(1))
           assert pack['project']['catalogVersion']==manifest['version'],'Menu e catalogo estao em versoes diferentes'
           assert (out/'menu-bridge.js').is_file() and (out/'index.html').is_file()
-          # O pacote preserva imagens e catalogo; arquivos HTML/JS atualizados no repositorio prevalecem.
-          for name in ('menu.html','menu-bridge.js','index.html'):
+          # O menu exportado precisa acompanhar exatamente a versao do catalogo.
+          # Nao substituir menu.html do pacote pelo menu antigo do repositorio.
+          # O editor administrativo e a ponte continuam vindos do repositorio.
+          for name in ('menu-bridge.js','index.html'):
               (out/name).write_bytes((root/name).read_bytes())
           print(f'OK: {manifest["version"]} | {len(files)} arquivos | {count} ZIPs')
           PY
