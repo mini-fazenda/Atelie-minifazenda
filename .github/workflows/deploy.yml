@@ -1,0 +1,88 @@
+name: Publicar Atelie Mini Fazenda
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'publication-*.zip'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages-atelie
+  cancel-in-progress: false
+jobs:
+  pages:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Verificar ZIPs, IDs, imagens e versao do catalogo
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, zipfile, re
+          root=pathlib.Path('.')
+          with zipfile.ZipFile('publication-01.zip') as first:
+              manifest=json.loads(first.read('manifest.json'))
+          assert manifest['schema']==1, 'Versao de pacote desconhecida'
+          count=manifest['parts']
+          assert isinstance(count,int) and 1<=count<=100, 'Quantidade de arquivos ZIP incorreta'
+          out=pathlib.Path('site');out.mkdir(exist_ok=True)
+          found=set()
+          for i in range(1,count+1):
+              zipname=f'publication-{i:02d}.zip'
+              assert pathlib.Path(zipname).is_file(),f'Falta {zipname}; envie todos juntos no mesmo commit'
+              with zipfile.ZipFile(zipname) as z:
+                  for name in z.namelist():
+                      target=pathlib.PurePosixPath(name)
+                      assert not target.is_absolute() and '..' not in target.parts and name not in found, 'Caminho inseguro ou duplicado'
+                      found.add(name)
+                      dest=out/name;dest.parent.mkdir(parents=True,exist_ok=True)
+                      dest.write_bytes(z.read(name))
+          files=manifest['files']
+          assert set(found)=={'manifest.json'}|{f['name'] for f in files},'Arquivos faltando ou sobrando'
+          for f in files:
+              b=(out/f['name']).read_bytes()
+              assert len(b)==f['size'] and hashlib.sha256(b).hexdigest()==f['sha256'],f'Arquivo alterado: {f["name"]}'
+          cat=json.loads((out/'catalog.json').read_text())
+          assert cat.get('catalogVersion')==manifest['version'],'Versao de catalogo divergente'
+          for gender in ('homem','mulher'):
+              c=cat['characters'][gender]
+              for pose in ('idleFront','idleBack','walkFront','walkBack'):
+                  assert c['poses'].get(pose,{}).get('body'),f'Falta corpo {gender}/{pose}'
+              for typ,arr in c['items'].items():
+                  ids=[it['id'] for it in arr]
+                  assert len(ids)==len(set(ids)),f'IDs duplicados {gender}/{typ}'
+                  for it in arr:
+                      if it.get('purchasable'):
+                          price=it.get('price')
+                          assert isinstance(price,int) and 0<price<=1000000000,f'Preco invalido {it["id"]}'
+          def asset_check(v):
+              if isinstance(v,dict):
+                  for k,x in v.items():
+                      if k=='src' and isinstance(x,str):
+                          assert re.fullmatch(r'assets/[a-f0-9]{24}\.(png|gif|webp|jpg)',x),f'Caminho invalido: {x[:90]}'
+                          assert (out/x).is_file(),f'Imagem GIF ausente: {x}'
+                      else:asset_check(x)
+              if isinstance(v,list):
+                  for x in v:asset_check(x)
+          asset_check(cat)
+          menu=(out/'menu.html').read_text()
+          data=re.search(r'<script type="application/json" id="data">(.*?)</script>',menu,re.S)
+          assert data, 'Menu nao foi exportado corretamente'
+          pack=json.loads(data.group(1))
+          assert pack['project']['catalogVersion']==manifest['version'],'Menu e catalogo estao em versoes diferentes'
+          assert (out/'menu-bridge.js').is_file() and (out/'index.html').is_file()
+          print(f'OK: {manifest["version"]} | {len(files)} arquivos | {count} ZIPs')
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Publicar GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
