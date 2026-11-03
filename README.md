@@ -19,13 +19,30 @@ O repositório já contém o editor administrativo (`index.html`), o menu dos jo
 
 O PR do jogo [#99](https://github.com/mini-fazenda/mini-fazenda/pull/99) já aponta para este endereço. Ele não deve ser mesclado antes de verificar os arquivos acima e as visitas no jogo.
 
-## Para adicionar uma roupa, cabelo, acessório ou GIF
+## Atualização pelo próprio Ateliê online
 
-Abra o editor Pages, faça todas as edições normalmente, incluindo as quatro poses, as duas vistas e os preços. Clique em **Publicar catálogo e menu**. O navegador baixa `publication-01.zip`, `publication-02.zip` etc. Permita downloads múltiplos, se ele pedir. No GitHub, use **Add file → Upload files**, selecione TODOS os novos `publication-*.zip` e faça **um único commit** para `main`. Substitua os arquivos `publication-XX.zip` antigos que tiverem o mesmo nome. Arquivos de números maiores de uma publicação antiga não são usados: o manifesto do novo pacote determina quais arquivos fazem parte da atualização.
+O editor tem a opção **Publicar online (GitHub)** para enviar o catálogo, o menu e os GIFs/PNGs diretamente do navegador, sem PowerShell e sem fazer upload manual no GitHub.
 
-O workflow valida o pacote completo, imagens, GIFs, hashes, preços, IDs, poses e a correspondência exata entre versão do menu e catálogo antes de publicar. Se os ZIPs ficarem incompletos ou forem inválidos, a atualização falha; o site publicado anteriormente continua disponível.
+### Autorizar a conta (primeira vez)
 
-**O botão Publicar gera o pacote**, mas não envia automaticamente para o GitHub: isso exige uma autenticação de escrita. Não coloque token GitHub em código HTML público. A única etapa manual é enviar os ZIPs ao repositório, sem editar o jogo.
+1. Na conta GitHub que tem permissão de escrita no repositório, abra [Fine-grained personal access tokens](https://github.com/settings/personal-access-tokens/new).
+2. Gere um token com validade curta. Selecione **Only select repositories** e marque **mini-fazenda/Atelie-minifazenda** (não o repositório do jogo).
+3. Em **Repository permissions → Contents**, escolha **Read and write**. Não conceda acesso a outros repositórios.
+4. Copie o token e guarde em local seguro. **Nunca coloque o token em arquivos HTML, commits, capturas de tela ou mensagens de chat.**
+
+### Publicar
+
+1. Abra [Ateliê online](https://mini-fazenda.github.io/Atelie-minifazenda/), edite as peças, GIFs, preços e poses normalmente.
+2. Clique em **Publicar online (GitHub)**, cole o token na solicitação do navegador e confirme.
+3. O editor prepara todos os arquivos e envia os ZIPs em **um único commit Git**, sem deixar versões parciais na branch main.
+4. Confirme o indicador verde em [Actions](https://github.com/mini-fazenda/Atelie-minifazenda/actions). Só depois da validação e publicação o novo menu fica disponível para os jogadores.
+5. Reabra o menu no jogo. Não é necessário alterar o repositório principal da Mini Fazenda.
+
+O token **não é gravado em cookies, IndexedDB ou localStorage pelo Ateliê**. Ele é usado somente durante o envio atual e precisa ser fornecido novamente na próxima publicação. A autenticação funciona apenas no GitHub Pages oficial do Ateliê.
+
+O botão **Baixar ZIPs (reserva)** preserva o método manual caso a conta, a API ou o token estejam indisponíveis. Os arquivos baixados continuam seguindo a publicação anterior: envie todos juntos em um commit, sem descompactar.
+
+O GitHub Actions valida hashes, IDs, GIFs, poses, preços e versões antes de servir o catálogo. Caso o pacote falhe, o Pages mantém a versão anterior disponível. A publicação online não altera Firebase, moedas ou salvamentos do jogo.
 
 ## Compatibilidade e segurança
 
