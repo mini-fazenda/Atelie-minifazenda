@@ -1,7 +1,7 @@
 /* Mini Fazenda / menu exportado. A compra é decidida pelo jogo, nunca por este iframe. */
 (()=>{'use strict';
  const api=()=>window.__mfEditorInternal;
- const categories=['hair','clothes','eyes','eyebrows','mouths','accessories'];
+ const categories=['hair','clothes','eyes','eyebrows','mouths','accessories','profileCard'];
  const footer=document.querySelector('.export-footer');
  const originalButtons=footer?.querySelectorAll('button')||[];
  originalButtons.forEach(b=>b.remove());
