@@ -28,6 +28,8 @@
   return {totals,items,valid:true};
  }
  function decoratePrices(){
+ const characterOption=document.querySelector('#options button[data-k="profileCard"][data-none]');
+ if(characterOption&&characterOption.textContent.trim()!=='🧑‍🌾 Personagem')characterOption.textContent='🧑‍🌾 Personagem';
  const c=api()?.catalog?.characters?.[state()?.gender];
  document.querySelectorAll('#options button[data-id]').forEach(b=>{
  const badge=b.querySelector('.purchase-price');if(!badge||badge.dataset.fixed)return;
