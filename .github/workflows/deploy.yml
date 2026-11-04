@@ -90,9 +90,13 @@ jobs:
               (out/name).write_bytes((root/name).read_bytes())
           print(f'OK: {manifest["version"]} | {len(files)} arquivos | {count} ZIPs')
           PY
+      # Um artefato exclusivo por tentativa evita colisão ao reexecutar o workflow.
       - uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: site
       - name: Publicar GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
