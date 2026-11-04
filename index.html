@@ -407,7 +407,7 @@ async function mfBundlePublication(destination='download',githubToken=null){
   const list=snapshot.characters[gender]?.items?.[cat],old=history.characters[gender]?.items?.[cat];
   if(!Array.isArray(list)||(!Array.isArray(old)&&cat!=='profileCard'))throw new Error('Categoria inválida: '+gender+'/'+cat);
   const ids=new Set(list.map(it=>it.id));
-  for(const it of old)if(!ids.has(it.id)){list.push(cloneProject(it));ids.add(it.id)}
+  for(const it of old||[])if(!ids.has(it.id)){list.push(cloneProject(it));ids.add(it.id)}
  }
  // Mantém os GIFs e PNGs de publicações anteriores, inclusive quando uma peça é editada.
  const previousPaths=new Set();
