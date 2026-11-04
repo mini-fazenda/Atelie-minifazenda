@@ -53,6 +53,29 @@
    else{if(msg)msg.textContent=String(m.reason||'Não foi possível salvar.');refresh();}
   }
  });
+ const compactStyle=document.createElement('style');
+ compactStyle.textContent=`@media(max-width:700px){
+ html,body{overflow:hidden!important;max-height:100dvh}
+ body{padding:3px!important;font-size:11px!important}
+ .box{padding:6px!important;border-width:2px!important;border-radius:10px!important;box-shadow:none!important}
+ h1{font-size:17px!important;margin:0 0 4px!important}
+ .grid{display:grid!important;grid-template-columns:minmax(0,32%) minmax(0,1fr)!important;gap:5px!important}
+ .grid>*{min-width:0!important}
+ .preview{width:100%!important;max-width:135px!important;padding:2px!important;border-width:1px!important;border-radius:8px!important;margin:0 auto!important}
+ .palette-line{gap:3px!important;margin:1px 0!important;font-size:10px!important}
+ .swatches{gap:2px!important}.swatches button{width:16px!important;height:16px!important;min-width:16px!important;padding:0!important}
+ #options{height:min(46dvh,275px)!important;min-height:100px!important;overflow-y:auto!important;overscroll-behavior:contain}
+ .group{padding:4px!important;border-width:1px!important;border-radius:7px!important}
+ .group h3{font-size:12px!important;margin:2px 0 4px!important}
+ .opts{grid-template-columns:repeat(auto-fill,minmax(54px,1fr))!important;gap:3px!important}
+ .opts>button{min-height:58px!important;padding:3px!important;border-width:1px!important;border-radius:6px!important;font-size:10px!important}
+ .opts img{width:40px!important;height:40px!important}
+ #genders button,#poses button,.category-tabs button,.export-footer button{padding:4px 6px!important;border-width:1px!important;border-radius:7px!important;font-size:11px!important}
+ .buttons,.category-tabs{gap:3px!important}.export-footer{margin-top:5px!important;padding-top:5px!important;border-width:1px!important}
+ .purchase-price{font-size:9px!important;min-height:15px!important;padding:1px 3px!important;border-width:1px!important}
+ #msg{font-size:10px!important;margin-top:3px!important}
+ }`;
+ document.head.append(compactStyle);
  const version=api()?.catalog?.catalogVersion||null;
  window.parent.postMessage({type:'mf-character-ready',catalogVersion:version},'*');
  refresh();
