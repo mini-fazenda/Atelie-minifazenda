@@ -6,9 +6,9 @@
  const originalButtons=footer?.querySelectorAll('button')||[];
  originalButtons.forEach(b=>b.remove());
  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Descartar alterações';cancel.id='mf-discard';
- const total=document.createElement('span');total.id='mf-cost';total.style.cssText='margin-left:auto;display:inline-flex;gap:5px;align-items:center;font-size:15px';
+ const total=document.createElement('div');total.id='mf-cost';total.setAttribute('aria-live','polite');total.setAttribute('aria-label','Total da personalização');
  const save=document.createElement('button');save.type='button';save.id='mf-save';save.textContent='SALVAR';
- footer?.append(cancel,total,save);
+ const summary=document.createElement('div');summary.className='mf-price-summary';summary.innerHTML='<div class="mf-price-title">TOTAL DA PERSONALIZAÇÃO</div>';summary.append(total);const counter=document.createElement('div');counter.id='mf-items-count';summary.append(counter);footer?.append(cancel,summary,save);
  let parentOrigin=null,owned=new Set(),balance=0,miniBalance=0,original=null,busy=false;
  const msg=document.getElementById('msg');
  const state=()=>api()?.get?.();
@@ -29,7 +29,15 @@
  }
  function refresh(){
   const q=quote(),enough=q.valid&&q.totals.coins<=balance&&q.totals.miniGrana<=miniBalance;
-  total.textContent='🪙 '+money(q.totals.coins)+'  ·  💵 '+money(q.totals.miniGrana);
+  total.replaceChildren();
+  for(const [icon,amount,label] of [['🪙',q.totals.coins,'moedas'],['💵',q.totals.miniGrana,'Mini Granas']]){
+   const line=document.createElement('div');line.className='mf-price-line';
+   const ico=document.createElement('span');ico.className='mf-price-icon';ico.textContent=icon;
+   const val=document.createElement('strong');val.textContent=money(amount);
+   const unit=document.createElement('span');unit.textContent=label;
+   line.append(ico,val,unit);total.append(line);
+  }
+  counter.textContent=q.items.length+' '+(q.items.length===1?'item pago selecionado':'itens pagos selecionados');
   save.disabled=busy||!parentOrigin||!enough;
   save.title=!q.valid?'Preço inválido':!enough?'Saldo insuficiente':q.items.length+' item(ns) novo(s)';
   if(msg)msg.textContent=!q.valid?'Preço inválido no catálogo.':!enough?'Saldo insuficiente para uma das moedas.':'Saldo: '+money(balance)+' moedas · '+money(miniBalance)+' Mini Grana.';
@@ -53,6 +61,20 @@
    else{if(msg)msg.textContent=String(m.reason||'Não foi possível salvar.');refresh();}
   }
  });
+ // Reorganiza somente o menu embutido: não altera sprites, catálogo ou lógica de compra.
+ const layoutGrid=document.querySelector('.grid');
+ const rightPanel=layoutGrid?.children?.[1];
+ const palette=document.querySelector('.color-box');
+ if(rightPanel&&palette){
+  rightPanel.insertBefore(palette,rightPanel.firstChild);
+  palette.classList.add('mf-palette-top');
+ }
+ const title=document.querySelector('.box h1');
+ if(title&&!document.getElementById('mf-subtitle')){
+  const subtitle=document.createElement('div');subtitle.id='mf-subtitle';
+  subtitle.textContent='Personalize o visual do seu avatar';
+  title.insertAdjacentElement('afterend',subtitle);
+ }
  const compactStyle=document.createElement('style');
  compactStyle.textContent=`
  /* Layout do menu incorporado: sempre duas colunas, independentemente do iframe. */
@@ -105,6 +127,46 @@
   .color-box{padding:4px!important;margin-bottom:4px!important}
   .group{padding:3px!important}
   .group h3{font-size:12px!important}
+ }
+ 
+ /* Aparência inspirada na referência, preservando as cores e os componentes existentes. */
+ .box{background:#fff7ed!important;border-color:#d8b99e!important}
+ .box h1{color:#633414!important}
+ #mf-subtitle{font-size:11px;color:#98745e;margin:-2px 0 5px;flex-shrink:0}
+ #genders{display:flex!important;justify-content:center!important;gap:8px!important}
+ #genders button{min-width:75px!important}
+ .grid{grid-template-columns:minmax(0,31%) minmax(0,1fr)!important;gap:9px!important}
+ .grid>div:first-child{background:#fffaf4;border:1px solid #e2c7b2;border-radius:13px;padding:6px}
+ .grid>div:last-child{background:#fffaf4;border:1px solid #e2c7b2;border-radius:13px;padding:6px}
+ .preview{max-width:175px!important;max-height:min(42dvh,220px)!important;background:#fbefe4!important}
+ .mf-palette-top{width:100%;margin:0 0 7px!important;display:flex!important;flex-direction:column!important}
+ .category-tabs{display:flex!important;flex-wrap:wrap!important}
+ .category-tabs button{background:#f9e8d9!important;color:#683a1e!important;border:1px solid #d9b69d!important}
+ .category-tabs button.active{background:#65a52d!important;color:white!important}
+ .export-footer{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;align-items:center!important;gap:9px!important;background:#fff4e9!important;border:1px solid #e0c1a8!important;border-radius:12px!important;padding:8px!important}
+ #mf-discard{background:transparent!important;color:#825b47!important;border:1px solid #d9b69d!important}
+ #mf-save{background:linear-gradient(#80bd3b,#438a15)!important;color:white!important;font-weight:800!important;min-width:105px!important}
+ .mf-price-summary{min-width:0;text-align:center;background:#fffdf7;border:2px solid #dfb88f;border-radius:10px;padding:5px 8px;box-shadow:0 2px 5px #8e60301b}
+ .mf-price-title{font-size:10px;font-weight:900;color:#754323;letter-spacing:.045em;margin-bottom:3px}
+ #mf-cost{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px 12px}
+ .mf-price-line{display:flex;align-items:center;gap:4px;white-space:nowrap;color:#4d2b17;font-size:11px}
+ .mf-price-line strong{font-size:17px;font-variant-numeric:tabular-nums}
+ .mf-price-icon{font-size:16px}
+ #mf-items-count{font-size:9px;color:#9b765c;margin-top:3px}
+ @media(max-width:520px){
+  .grid{grid-template-columns:minmax(0,30%) minmax(0,1fr)!important;gap:4px!important}
+  .grid>div:first-child,.grid>div:last-child{padding:3px!important;border-radius:7px!important}
+  .preview{max-width:108px!important;max-height:min(34dvh,145px)!important}
+  .export-footer{grid-template-columns:auto minmax(0,1fr) auto!important;gap:3px!important;padding:3px!important;border-radius:7px!important}
+  .mf-price-summary{padding:3px!important;border-width:1px!important}
+  .mf-price-title{font-size:8px!important;letter-spacing:0!important}
+  #mf-cost{gap:1px 5px!important}
+  .mf-price-line{font-size:9px!important;gap:2px!important}
+  .mf-price-line strong{font-size:12px!important}
+  .mf-price-icon{font-size:11px!important}
+  #mf-items-count{font-size:8px!important}
+  #mf-discard,#mf-save{min-width:0!important;padding:4px!important;font-size:9px!important}
+  #mf-subtitle{font-size:9px!important}
  }
  `;
  document.head.append(compactStyle);
