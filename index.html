@@ -365,13 +365,29 @@ async function mfPrepareForPages(source){
   const hash=(await mfHash(bytes)).slice(0,24),path='assets/'+hash+'.'+mimeExt[mime];
   assets.set(path,bytes);srcMap.set(src,path);return path;
  }
- async function walk(v){
-  if(Array.isArray(v)){for(let i=0;i<v.length;i++)v[i]=await walk(v[i]);return v}
+ async function walk(v,context='catálogo'){
+  if(Array.isArray(v)){for(let i=0;i<v.length;i++)v[i]=await walk(v[i],context+'['+i+']');return v}
   if(v&&typeof v==='object'){
-   for(const key of Object.keys(v))v[key]=key==='src'&&typeof v[key]==='string'?await move(v[key]):await walk(v[key]);
+   for(const key of Object.keys(v)){
+    if(key==='src'&&typeof v[key]==='string'){
+     try{v[key]=await move(v[key])}
+     catch(e){throw new Error('A imagem usada em '+context+' não foi encontrada: '+v[key]+'. Reenvie esta arte no Ateliê para manter o item. Detalhe: '+e.message)}
+    }else v[key]=await walk(v[key],context+'.'+key);
+   }
   }return v;
  }
+ // Arquivos de publicações antigas podem ter sido removidos no Pages.
+ // Reaproveitar somente os que ainda existem; nunca bloquear por um legado órfão.
+ const legacy=Array.isArray(project.legacyAssets)?project.legacyAssets:[];
+ delete project.legacyAssets;
  await walk(project);
+ let ignoredLegacy=0;
+ for(const item of legacy){
+  if(!item?.src||srcMap.has(item.src))continue;
+  try{await move(item.src)}
+  catch(e){if(String(e.message).startsWith('Arquivo de imagem não disponível: ')){ignoredLegacy++;continue}throw e}
+ }
+ if(ignoredLegacy)console.warn('[Ateliê] Arquivos históricos não encontrados, ignorados:',ignoredLegacy);
  const version=(await mfHash(new TextEncoder().encode(JSON.stringify(project)))).slice(0,16);
  project.catalogVersion=version;
  return {project,assets,version};
