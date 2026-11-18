@@ -9,7 +9,7 @@
  const total=document.createElement('div');total.id='mf-cost';total.setAttribute('aria-live','polite');total.setAttribute('aria-label','Total da personalização');
  const save=document.createElement('button');save.type='button';save.id='mf-save';save.textContent='SALVAR';
  const summary=document.createElement('div');summary.className='mf-price-summary';summary.innerHTML='<div class="mf-price-title">TOTAL DA PERSONALIZAÇÃO</div>';summary.append(total);const counter=document.createElement('div');counter.id='mf-items-count';summary.append(counter);footer?.append(cancel,summary,save);
- let parentOrigin=null,owned=new Set(),balance=0,miniBalance=0,original=null,busy=false;
+ let parentOrigin=null,owned=new Set(),unlocked=new Set(),balance=0,miniBalance=0,original=null,busy=false;
  const msg=document.getElementById('msg');
  const state=()=>api()?.get?.();
  const money=v=>Math.max(0,Math.floor(Number(v)||0)).toLocaleString('pt-BR');
@@ -19,6 +19,7 @@
   const c=api()?.catalog?.characters?.[v.gender];
   for(const cat of categories){
    const it=c?.items?.[cat]?.find(x=>x.id===v.selected?.[cat]);
+   if(it&&(it.rewardOnly===true||it.unlockable===true)){if(!unlocked.has(it.unlockId||it.id))return {totals,items:[],valid:false,locked:true};continue;}
    if(!it||!it.purchasable||owned.has(it.id)||seen.has(it.id))continue;
    const n=Number(it.price),currency=it.currency===undefined?'coins':it.currency;
    if(!Number.isSafeInteger(n)||n<1||n>1e9||!['coins','miniGrana'].includes(currency))return {totals,items:[],valid:false};
@@ -32,6 +33,8 @@
  if(characterOption&&characterOption.textContent.trim()!=='🧑‍🌾 Personagem')characterOption.textContent='🧑‍🌾 Personagem';
  const c=api()?.catalog?.characters?.[state()?.gender];
  document.querySelectorAll('#options button[data-id]').forEach(b=>{
+ const rewardItem=c?.items?.[b.dataset.k]?.find(x=>x.id===b.dataset.id);
+ if(rewardItem&&(rewardItem.rewardOnly===true||rewardItem.unlockable===true)){const allowed=unlocked.has(rewardItem.unlockId||rewardItem.id);b.disabled=!allowed;b.title=allowed?'Recompensa conquistada':'Conquiste esta recompensa para desbloquear';let label=b.querySelector('.mf-reward-label');if(!label){label=document.createElement('span');label.className='mf-reward-label';b.append(label);}label.textContent=allowed?'✓ Conquistado':'🔒 Recompensa';b.querySelector('.purchase-price')?.remove();return;}
  const badge=b.querySelector('.purchase-price');if(!badge||badge.dataset.fixed)return;
  const it=c?.items?.[b.dataset.k]?.find(x=>x.id===b.dataset.id);
  if(!it||!it.purchasable||!Number.isSafeInteger(Number(it.price)))return;
@@ -55,9 +58,10 @@
   }
   counter.textContent=q.items.length+' '+(q.items.length===1?'item pago selecionado':'itens pagos selecionados');
   save.disabled=busy||!parentOrigin||!enough;
-  save.title=!q.valid?'Preço inválido':!enough?'Saldo insuficiente':q.items.length+' item(ns) novo(s)';
-  if(msg)msg.textContent=!q.valid?'Preço inválido no catálogo.':!enough?'Saldo insuficiente para uma das moedas.':'Saldo: '+money(balance)+' moedas · '+money(miniBalance)+' Mini Grana.';
+  save.title=q.locked?'Esta peça precisa ser conquistada':!q.valid?'Preço inválido':!enough?'Saldo insuficiente':q.items.length+' item(ns) novo(s)';
+  if(msg)msg.textContent=q.locked?'Esta peça precisa ser conquistada para salvar.':!q.valid?'Preço inválido no catálogo.':!enough?'Saldo insuficiente para uma das moedas.':'Saldo: '+money(balance)+' moedas · '+money(miniBalance)+' Mini Grana.';
  }
+ document.getElementById('options')?.addEventListener('click',event=>{const button=event.target.closest?.('button[data-id]'),v=state(),it=api()?.catalog?.characters?.[v?.gender]?.items?.[button?.dataset.k]?.find(x=>x.id===button?.dataset.id);if(it&&(it.rewardOnly===true||it.unlockable===true)&&!unlocked.has(it.unlockId||it.id)){event.preventDefault();event.stopImmediatePropagation();}},true);
  const observer=new MutationObserver(()=>queueMicrotask(refresh));
  if(document.getElementById('options'))observer.observe(document.getElementById('options'),{childList:true,subtree:false});
  if(document.getElementById('genders'))observer.observe(document.getElementById('genders'),{childList:true});
@@ -70,7 +74,7 @@
   const m=event.data;
   if(m.type==='mf-character-init'){
    if(parentOrigin&&event.origin!==parentOrigin)return;
-   parentOrigin=event.origin;owned=new Set(Array.isArray(m.owned)?m.owned.filter(x=>typeof x==='string'):[]);balance=Math.max(0,Number(m.balance)||0);miniBalance=Math.max(0,Number(m.miniGrana)||0);original=m.appearance||null;
+   parentOrigin=event.origin;unlocked=new Set(Array.isArray(m.unlocked)?m.unlocked.filter(x=>typeof x==='string'):[]);owned=new Set(Array.isArray(m.owned)?m.owned.filter(x=>typeof x==='string'):[]);balance=Math.max(0,Number(m.balance)||0);miniBalance=Math.max(0,Number(m.miniGrana)||0);original=m.appearance||null;
    if(original)api()?.load?.(original);refresh();
   }else if(event.origin===parentOrigin&&m.type==='mf-character-result'){
    busy=false;if(m.ok){if(msg)msg.textContent='Personagem salvo.';balance=Math.max(0,Number(m.balance)||balance);miniBalance=Math.max(0,Number(m.miniGrana)||0);for(const id of m.owned||[])owned.add(id);refresh();}

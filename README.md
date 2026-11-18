@@ -56,3 +56,13 @@ O GitHub Actions valida hashes, IDs, GIFs, poses, preços e versões antes de se
 ## Diagnóstico
 
 Se o editor disser que não consegue publicar, abra o site pelo GitHub Pages (HTTPS), e não a cópia HTML aberta por `file://`. Confira se `catalog.json` abre, se os GIFs abrem individualmente e se **Actions** apresenta erros. Depois de publicar, recarregue o jogo para obter o menu novo, ou abra a personalização para verificar a versão atual.
+
+## Peças exclusivas por recompensa
+
+O seletor de cada peça inclui **Somente recompensa (desbloqueável)**. A opção salva `rewardOnly:true`, `purchasable:false`, `price:0` e `unlockId` igual ao ID permanente da peça. O ID aparece no card para vincular o prêmio no jogo. Roupas unissex mantêm a regra nos dois gêneros. Publique pelo botão habitual para disponibilizar novas peças.
+
+O menu mostra cadeado e impede a seleção/confirmação enquanto o jogo não enviar o ID na lista `unlocked`. Saldo e lista de compras não substituem esse direito. O suporte completo do jogo está em `mini-fazenda/mini-fazenda`, branch `atualizacao-de-natal`; a main do jogo permanece intacta.
+
+Veja [o guia de cadastro](https://github.com/mini-fazenda/mini-fazenda/blob/atualizacao-de-natal/docs/recompensas-permanentes.md). As roupas e assets históricos devem continuar publicados após o fim do evento.
+
+Testes: `node --test tests/*.cjs`.
